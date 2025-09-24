@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Franz Fuertes - Full Stack Developer</title>
+
+<!-- Bootstrap -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<!-- Font Awesome -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+/* ========== GLOBAL ========== */
+body {
+  font-family: 'Poppins', sans-serif;
+  color: #fff;
+  background: #0a0a0a;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+/* Scroll progress bar */
+#progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 4px;
+  width: 0;
+  background: linear-gradient(90deg, #00e5ff, #ff00ff);
+  z-index: 10000;
+  transition: width 0.2s ease;
+}
+
+/* BG Layers */
+#background-animation {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: -3;
+}
+.particle-overlay {
+  position: fixed;
+  inset: 0;
+  background: url('https://i.ibb.co/7WymCjD/particles.gif') center/cover repeat;
+  opacity: 0.12;
+  mix-blend-mode: screen;
+  z-index: -2;
+}
+.glow-overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 20% 30%, rgba(0,229,255,0.08), transparent 60%),
+              radial-gradient(circle at 80% 70%, rgba(255,0,255,0.08), transparent 60%);
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* ========== NAVBAR ========== */
+.navbar {
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(14px);
+  padding: 15px 0;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.navbar.scrolled {
+  background: rgba(0,0,0,0.9);
+  box-shadow: 0 2px 20px rgba(0,229,255,0.2);
+}
+.navbar-brand {
+  font-weight: 700;
+  font-size: 1.4rem;
+}
+.nav-link {
+  color: #fff !important;
+  font-weight: 500;
+  margin-left: 18px;
+  position: relative;
+  letter-spacing: 0.5px;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -5px;
+  width: 0%; height: 2px;
+  background: linear-gradient(90deg,#00e5ff,#ff00ff);
+  transition: width 0.3s;
+}
+.nav-link:hover::after, .nav-link.active::after {
+  width: 100%;
+}
+
+/* ========== HERO ========== */
+.hero {
+  height: 100vh;
+  display: flex; justify-content: center; align-items: center;
+  text-align: center;
+}
+.hero h1 {
+  font-size: 4.2rem;
+  font-weight: 800;
+  background: linear-gradient(90deg,#00e5ff,#0d6efd,#ff00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: neonPulse 4s infinite alternate;
+}
+.hero p {
+  font-size: 1.3rem;
+  margin-top: 12px;
+  color: #bbb;
+}
+.typing {
+  color: #00e5ff;
+  font-weight: 700;
+  text-shadow: 0 0 10px #00e5ff, 0 0 20px #00e5ff;
+}
+.hero .btn {
+  padding: 15px 38px;
+  border-radius: 40px;
+  background: linear-gradient(90deg, #0d6efd, #00e5ff);
+  color: white;
+  border: none;
+  margin-top: 28px;
+  box-shadow: 0 0 20px rgba(0,229,255,0.7);
+  transition: all 0.4s ease;
+}
+.hero .btn:hover {
+  transform: translateY(-6px) scale(1.07);
+  box-shadow: 0 0 40px rgba(0,229,255,1);
+}
+
+@keyframes neonPulse {
+  from { text-shadow: 0 0 20px #00e5ff, 0 0 40px #0d6efd; }
+  to { text-shadow: 0 0 30px #ff00ff, 0 0 60px #00e5ff; }
+}
+
+/* ========== SECTION STYLES ========== */
+section {
+  padding: 100px 0;
+}
+.section-title {
+  font-size: 2.8rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: linear-gradient(90deg,#00e5ff,#ff00ff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 60px;
+  position: relative;
+}
+.section-title::after {
+  content: "";
+  display: block;
+  margin: 15px auto 0;
+  width: 80px;
+  height: 3px;
+  background: linear-gradient(90deg, #00e5ff, #ff00ff);
+  border-radius: 2px;
+}
+
+/* Glass panel with glowing border */
+.glass-panel {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(18px);
+  border-radius: 25px;
+  padding: 50px;
+  border: 1px solid rgba(255,255,255,0.08);
+  position: relative;
+  transition: transform 0.5s ease, box-shadow 0.5s ease;
+}
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(135deg, #00e5ff, #ff00ff, #0d6efd);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+.glass-panel:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 50px rgba(0,229,255,0.3);
+}
+
+/* Cards with 3D tilt */
+.card {
+  border: none;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.07);
+  color: #fff;
+  perspective: 1000px;
+  transition: all 0.4s ease;
+}
+.card:hover {
+  transform: translateY(-10px) rotate3d(1,1,0,8deg);
+  box-shadow: 0 20px 50px rgba(0,229,255,0.5);
+}
+.card i {
+  color: #00e5ff;
+  font-size: 2.2rem;
+  margin-bottom: 15px;
+}
+
+/* Gallery */
+.gallery-img {
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all 0.4s ease;
+}
+.gallery-img:hover {
+  transform: scale(1.08) rotate(1deg);
+  box-shadow: 0 15px 35px rgba(0,229,255,0.6);
+}
+
+/* Contact */
+#contact .form-control {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  border-radius: 14px;
+}
+#contact .form-control::placeholder { color: rgba(255,255,255,0.5); }
+#contact button {
+  border-radius: 28px;
+  background: linear-gradient(90deg, #0d6efd, #00e5ff);
+  border: none;
+  padding: 14px;
+  font-size: 1.1rem;
+  color: #fff;
+  box-shadow: 0 0 20px rgba(0,229,255,0.6);
+  transition: 0.3s;
+}
+#contact button:hover {
+  box-shadow: 0 0 40px rgba(0,229,255,0.9);
+  transform: translateY(-4px);
+}
+
+/* Footer */
+footer {
+  background: rgba(0,0,0,0.85);
+  padding: 20px 0;
+  font-size: 0.95rem;
+}
+footer a {
+  color: #00e5ff;
+  transition: 0.3s;
+}
+footer a:hover { color: #fff; text-shadow: 0 0 12px #00e5ff; }
+
+/* Scroll reveal base */
+.reveal { opacity: 0; transform: translateY(60px); transition: 0.9s ease; }
+.reveal.active { opacity: 1; transform: translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- Scroll bar -->
+<div id="progress-bar"></div>
+
+<!-- BG -->
+<div id="background-animation"></div>
+<div class="particle-overlay"></div>
+<div class="glow-overlay"></div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark fixed-top">
+  <div class="container">
+    <a class="navbar-brand" href="#"><i class="fas fa-code me-2"></i> Franz Vincent Fuertes</a>
+    <button class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#nav"><span class="navbar-toggler-icon"></span></button>
+    <div class="collapse navbar-collapse" id="nav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="#projects">Projects</a></li>
+        <li class="nav-item"><a class="nav-link" href="#gallery">Gallery</a></li>
+        <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section id="home" class="hero">
+  <div class="container">
+    <h1>Hello, I'm Franz</h1>
+    <p>A <span class="typing"></span></p>
+    <a href="#projects" class="btn">Explore My Work</a>
+  </div>
+</section>
+
+<!-- About -->
+<section id="about" class="reveal">
+  <div class="container glass-panel">
+    <h2 class="section-title">About Me</h2>
+    <div class="row align-items-center">
+      <div class="col-md-6"><img src="ee.jpg" class="img-fluid rounded shadow-lg" alt=""></div>
+      <div class="col-md-6">
+        <p class="lead">I’m a Full Stack Developer passionate about futuristic, user-friendly digital experiences.</p>
+        <p>I blend creativity with technology, turning complex problems into seamless and visually stunning solutions.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Projects -->
+<section id="projects" class="reveal">
+  <div class="container glass-panel">
+    <h2 class="section-title">Projects</h2>
+    <div class="row g-4">
+      <div class="col-md-4"><div class="card p-4 h-100 text-center"><i class="fas fa-laptop-code"></i><h5>Chatgptclone.HTML</h5><p>Modern responsive UI showcase.</p><a href="Chatgptclone.HTML" class="btn btn-sm btn-primary mt-2">View</a></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100 text-center"><i class="fas fa-database"></i><h5>MYWEB.HTML</h5><p>Backend integration & APIs.</p><a href="MYWEB.HTML" class="btn btn-sm btn-primary mt-2">View</a></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100 text-center"><i class="fas fa-calculator"></i><h5>Calculator</h5><p>Logic + clean UX design.</p><a href="calculator.html" class="btn btn-sm btn-primary mt-2">View</a></div></div>
+      <div class="col-md-4"><div class="card p-4 h-100 text-center"><i class="fas fa-todolist"></i><h5>Todolist</h5><p>Logic + clean UX design.</p><a href="todolist.html" class="btn btn-sm btn-primary mt-2">View</a></div></div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Gallery -->
+<section id="gallery" class="reveal">
+  <div class="container glass-panel text-center">
+    <h2 class="section-title">Gallery</h2>
+    <div class="row g-4 mb-4">
+      <div class="col-md-4"><img src="qq.jpg" class="gallery-img img-fluid" alt=""></div>
+      <div class="col-md-4"><img src="ww.jpg" class="gallery-img img-fluid" alt=""></div>
+      <div class="col-md-4"><img src="rr.jpg" class="gallery-img img-fluid" alt=""></div>
+    </div>
+    <h5 class="text-info">Panabo, Davao del Norte</h5>
+    <iframe class="mt-3" width="100%" height="400" style="border-radius:18px;" 
+      src="https://www.google.com/maps/embed?..."></iframe>
+  </div>
+</section>
+
+<!-- Contact -->
+<section id="contact" class="reveal">
+  <div class="container glass-panel">
+    <h2 class="section-title">Contact</h2>
+    <div class="row">
+      <div class="col-md-6">
+        <form>
+          <input type="text" class="form-control mb-3" placeholder="Name" required>
+          <input type="email" class="form-control mb-3" placeholder="Email" required>
+          <textarea class="form-control mb-3" rows="5" placeholder="Message"></textarea>
+          <button class="btn w-100">Send</button>
+        </form>
+      </div>
+      <div class="col-md-6 text-center">
+        <p><i class="fas fa-envelope"></i> franzfuertes@gmail.com</p>
+        <p><i class="fas fa-phone"></i> +63 912 345 6789</p>
+        <p><i class="fas fa-map-marker-alt"></i> Panabo, Davao del Norte</p>
+        <a href="#"><i class="fab fa-facebook fs-3 me-3"></i></a>
+        <a href="#"><i class="fab fa-github fs-3 me-3"></i></a>
+        <a href="#"><i class="fab fa-linkedin fs-3"></i></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="text-center">
+  <p>&copy; 2025 Franz Vincent Fuertes. All Rights Reserved.</p>
+</footer>
+
+<!-- Scripts -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r121/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta/dist/vanta.fog.min.js"></script>
+<script>
+VANTA.FOG({
+  el: "#background-animation",
+  highlightColor: 0x00e5ff,
+  midtoneColor: 0x0d6efd,
+  lowlightColor: 0x000000,
+  baseColor: 0x0a0a0a,
+  blurFactor: 0.5,
+  speed: 1.2,
+  zoom: 0.9
+});
+
+// Typing animation
+const words = ["Full Stack Developer","UI/UX Designer","Problem Solver"];
+let i=0, j=0, currentWord="", isDeleting=false;
+function type(){
+  currentWord = words[i];
+  document.querySelector(".typing").textContent = currentWord.substring(0,j);
+  if(!isDeleting && j++ === currentWord.length){isDeleting=true;setTimeout(type,1200);return;}
+  if(isDeleting && j--===0){isDeleting=false;i=(i+1)%words.length;}
+  setTimeout(type,isDeleting?70:120);
+}
+type();
+
+// Scroll reveal
+window.addEventListener("scroll",()=>{
+  document.querySelectorAll(".reveal").forEach(el=>{
+    let pos=el.getBoundingClientRect().top;
+    if(pos<window.innerHeight-80) el.classList.add("active");
+  });
+
+  // Progress bar
+  let docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  let scrolled = (window.scrollY / docHeight) * 100;
+  document.getElementById("progress-bar").style.width = scrolled + "%";
+});
+
+// Navbar scroll color
+window.addEventListener("scroll",()=>{
+  document.querySelector(".navbar").classList.toggle("scrolled",window.scrollY>50);
+});
+</script>
+</body>
+</html>

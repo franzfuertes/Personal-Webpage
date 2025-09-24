@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatGPT Clone - Futuristic Neon</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100vh;
+      display: flex;
+      background: radial-gradient(circle at top left, #0a0f1f, #131b2c 40%, #1a1f3c 80%);
+      color: #f8f9fa;
+      overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background: rgba(13, 13, 13, 0.95);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.3s ease;
+      z-index: 1000;
+      padding: 12px;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      left: -260px;
+      backdrop-filter: blur(12px);
+      box-shadow: 4px 0 25px rgba(0, 0, 0, 0.8);
+    }
+    .sidebar.show { left: 0; }
+    .sidebar h5 {
+      color: #aaa;
+      margin-bottom: 15px;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+    .sidebar a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      margin-bottom: 6px;
+      border-radius: 10px;
+      color: #ddd;
+      text-decoration: none;
+      font-size: 15px;
+      transition: all 0.3s ease-in-out;
+    }
+    .sidebar a:hover {
+      background: linear-gradient(90deg, #232323, #2c2c2c);
+      color: #00f5ff;
+      transform: translateX(6px);
+      box-shadow: 0 0 10px rgba(0, 245, 255, 0.4);
+    }
+    .sidebar .active {
+      background: linear-gradient(90deg, #6c5ce7, #00cec9);
+      color: #fff;
+      font-weight: 600;
+      box-shadow: 0 0 12px rgba(108, 92, 231, 0.7);
+    }
+
+    /* User area */
+    .user-area {
+      border-top: 1px solid #2a2a2a;
+      padding-top: 12px;
+    }
+    .dropdown-menu-dark .dropdown-item:hover {
+      background: linear-gradient(90deg, #232323, #2c2c2c);
+      color: #00f5ff;
+      box-shadow: 0 0 8px rgba(0, 245, 255, 0.5);
+    }
+
+    /* Main chat area */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      margin-left: 0;
+      transition: margin-left 0.3s ease;
+      background: rgba(20, 20, 20, 0.95);
+      border-top-left-radius: 20px;
+      border-bottom-left-radius: 20px;
+      padding: 0;
+      width: 100%;
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(10px);
+    }
+    .main.shifted { margin-left: 260px; }
+
+    .main-header {
+      background: #101010;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #222;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+    }
+    .main-header h4 {
+      margin: 0;
+      font-size: 18px;
+      color: #00f5ff;
+      text-shadow: 0 0 8px #00f5ff, 0 0 15px rgba(0, 245, 255, 0.7);
+    }
+
+    .chat-box {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scrollbar-width: thin;
+      scrollbar-color: #6c5ce7 #1a1a1a;
+    }
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-box::-webkit-scrollbar-thumb {
+      background: #6c5ce7;
+      border-radius: 8px;
+    }
+
+    /* Messages */
+    .message {
+      max-width: 75%;
+      padding: 14px 18px;
+      border-radius: 14px;
+      line-height: 1.6;
+      animation: fadeIn 0.35s ease;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+    }
+    .message.user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #6c5ce7, #00cec9);
+      color: white;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 0 12px rgba(0, 206, 201, 0.6);
+    }
+    .message.ai {
+      align-self: flex-start;
+      background: rgba(34, 34, 34, 0.95);
+      color: #eaeaea;
+      border-bottom-left-radius: 4px;
+      border: 1px solid #333;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(8px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    /* Input */
+    .input-area {
+      display: flex;
+      padding: 15px;
+      border-top: 1px solid #2a2a2a;
+      background: #101010;
+    }
+    .input-area input {
+      flex: 1;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      background: #1e1e1e;
+      color: #fff;
+      transition: 0.25s;
+    }
+    .input-area input:focus {
+      background: #2c2c2c;
+      box-shadow: 0 0 12px #6c5ce7, 0 0 20px #00cec9;
+    }
+    .send-btn {
+      background: linear-gradient(135deg, #6c5ce7, #00cec9);
+      border: none;
+      border-radius: 10px;
+      padding: 0 20px;
+      margin-left: 10px;
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+    .send-btn:hover {
+      opacity: 0.9;
+      box-shadow: 0 0 14px #00f5ff, 0 0 20px rgba(108, 92, 231, 0.7);
+      transform: scale(1.05);
+    }
+
+    /* Toast notification */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1100;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <h5>Navigation</h5>
+      <a href="#" onclick="loadContent('home', event)" class="active"><i class="fa-solid fa-house"></i> Home</a>
+      <a href="#" onclick="loadContent('programming', event)"><i class="fa-solid fa-code"></i> Programming</a>
+      <a href="#" onclick="loadContent('education', event)"><i class="fa-solid fa-book"></i> Education</a>
+      <a href="#" onclick="loadContent('gaming', event)"><i class="fa-solid fa-gamepad"></i> Gaming</a>
+      <a href="#" onclick="loadContent('music', event)"><i class="fa-solid fa-music"></i> Music</a>
+      <a href="#" onclick="loadContent('movies', event)"><i class="fa-solid fa-film"></i> Movies</a>
+      <a href="#" onclick="loadContent('sports', event)"><i class="fa-solid fa-football"></i> Sports</a>
+      <a href="#" onclick="loadContent('settings', event)"><i class="fa-solid fa-gear"></i> Settings</a>
+    </div>
+
+    <!-- Franz Fuertes -->
+    <div class="user-area">
+      <div class="dropdown w-100">
+        <button class="btn w-100 d-flex align-items-center p-2 rounded bg-dark text-white" 
+                type="button" id="franzMenu" data-bs-toggle="dropdown" aria-expanded="false">
+          <div class="rounded-circle bg-success d-flex justify-content-center align-items-center" 
+               style="width:32px; height:32px; font-weight:bold; font-size:14px;">F</div>
+          <div class="ms-2 text-start">
+            <p class="m-0 fw-bold">Franz Fuertes</p>
+            <small class="text-muted">franzfuertes@gmail.com</small>
+          </div>
+          <i class="fa-solid fa-caret-down ms-auto"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-dark w-100 mt-2 shadow rounded-3" aria-labelledby="franzMenu">
+          <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="fa-solid fa-star me-2"></i> Upgrade plan</a></li>
+          <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="fa-solid fa-sliders me-2"></i> Customize ChatGPT</a></li>
+          <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="fa-solid fa-gear me-2"></i> Settings</a></li>
+          <li><a class="dropdown-item d-flex align-items-center" href="#"><i class="fa-solid fa-circle-question me-2"></i> Help</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <!-- Trigger modal instead of logout directly -->
+          <li><a class="dropdown-item text-danger d-flex align-items-center" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal"><i class="fa-solid fa-right-from-bracket me-2"></i> Log out</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Chat Area -->
+  <div class="main" id="main">
+    <div class="main-header">
+      <button class="btn btn-sm btn-outline-light" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <h4 id="chatTitle">ChatGPT</h4>
+    </div>
+
+    <div id="chat-content" class="chat-box">
+      <div class="message ai"><b>🤖 ChatGPT:</b> Hello! How can I help you today?</div>
+    </div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <input type="text" id="userInput" placeholder="Type your message...">
+      <button class="send-btn" onclick="sendMessage()">➤</button>
+    </div>
+  </div>
+
+  <!-- Logout Confirmation Modal -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-labelledby="logoutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content bg-dark text-white">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="logoutModalLabel">Confirm Logout</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Do you really want to log out?
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+          <button type="button" class="btn btn-danger" onclick="logout()" data-bs-dismiss="modal">Yes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-container">
+    <div id="logoutToast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body">
+          ✅ Successfully logged out!
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  let currentTopic = "home";
+  let loggedIn = true;
+
+  function toggleSidebar() {
+    let sidebar = document.getElementById("sidebar");
+    let main = document.getElementById("main");
+    sidebar.classList.toggle("show");
+    main.classList.toggle("shifted");
+  }
+
+  function loadContent(topic, event) {
+    currentTopic = topic;
+    document.getElementById("chatTitle").textContent = "ChatGPT - " + topic.charAt(0).toUpperCase() + topic.slice(1);
+
+    let chat = document.getElementById("chat-content");
+    chat.innerHTML = `<div class="message ai"><b>🤖 ChatGPT:</b> Hi! How can I help you today about <b>${topic}</b>?</div>`;
+
+    document.querySelectorAll(".sidebar a").forEach(el => el.classList.remove("active"));
+    event.target.closest("a").classList.add("active");
+  }
+
+  function sendMessage() {
+    if (!loggedIn) {
+      alert("You are logged out. Please log in again.");
+      return;
+    }
+
+    let input = document.getElementById("userInput");
+    let msg = input.value.trim();
+    if (!msg) return;
+
+    let chat = document.getElementById("chat-content");
+    chat.innerHTML += `<div class="message user"><b>You:</b> ${msg}</div>`;
+
+    let reply = getAIReply(msg);
+    chat.innerHTML += `<div class="message ai"><b>🤖 ChatGPT:</b> ${reply}</div>`;
+
+    input.value = "";
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function getAIReply(msg) {
+    msg = msg.toLowerCase();
+    switch (currentTopic) {
+      case "programming": return msg.includes("python") ? "🐍 Python is excellent for AI and scripting." : "💻 Ask me about programming languages!";
+      case "education": return msg.includes("study") ? "📚 Try the Pomodoro technique for focus." : "🎓 I can give you study tips.";
+      case "gaming": return msg.includes("valorant") ? "🎮 Valorant is a tactical shooter with team play." : "🎲 Gaming is fun! Ask me about PC or console games.";
+      case "music": return msg.includes("rock") ? "🎸 Rock legends include Queen & Nirvana." : "🎶 Music heals the soul!";
+      case "movies": return msg.includes("marvel") ? "🎥 Marvel movies are packed with heroes and action!" : "🍿 Ask me about movies & TV shows.";
+      case "sports": return msg.includes("football") ? "⚽ Football is the world’s most popular sport." : "🏀 Sports keep you active and healthy!";
+      case "settings": return "⚙️ Settings are not functional in this demo.";
+      default: return "🤖 I'm here to help! Just ask me anything.";
+    }
+  }
+
+  function logout() {
+    loggedIn = false;
+    let chat = document.getElementById("chat-content");
+    chat.innerHTML = `<div class="message ai"><b>🤖 ChatGPT:</b> 🔒 You have been logged out. Please refresh to log in again.</div>`;
+
+    // Show success toast
+    let toastEl = document.getElementById("logoutToast");
+    let toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+  }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
