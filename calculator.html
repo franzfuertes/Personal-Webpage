@@ -306,14 +306,13 @@
       <div class="field">
         <input id="username" class="input" placeholder="Email (e.g. you@example.com)" autocomplete="username">
       </div>
-      
 
       <div class="field">
         <div style="display:flex;align-items:center;justify-content:space-between; gap:8px;">
-          <input id="password" class="input" placeholder="Password" type="password" autocomplete="current-password" style="flex:1">
+          <input id="password" class="input" placeholder="Password" type="password" autocomplete="current-password" style="flex:1" aria-label="Password">
           <button id="showPw" class="toggle-btn" title="Show / hide password"><i class="fa-solid fa-eye"></i></button>
         </div>
-        
+
         <div class="requirements" aria-hidden="false">
           <div id="reqUpper" class="req invalid"><i class="fa-solid fa-xmark"></i> A-Z</div>
           <div id="reqLower" class="req invalid"><i class="fa-solid fa-xmark"></i> a-z</div>
@@ -328,7 +327,7 @@
 
       <div class="error" id="loginError">Wrong username or password.</div>
 
-      <div style="margin-top:10px;font-size:13px;color:var(--muted)">
+     <div style="margin-top:10px;font-size:13px;color:var(--muted)">
       </div>
     </div>
 
