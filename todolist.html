@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do with Snooze</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:"Segoe UI",sans-serif;}
+    body{min-height:100vh;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(135deg,#141e30,#243b55);transition:0.4s;}
+    body.light{background:linear-gradient(135deg,#e0eafc,#cfdef3);}
+    .todo-container{backdrop-filter:blur(20px);background:rgba(255,255,255,0.08);
+      border-radius:20px;padding:25px;width:95%;max-width:750px;
+      color:#fff;transition:0.4s;box-shadow:0 10px 35px rgba(0,0,0,0.25);}
+    body.light .todo-container{background:rgba(255,255,255,0.9);color:#222;}
+    .todo-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .controls{display:flex;gap:10px;}
+    .btn{border:none;padding:10px 16px;border-radius:30px;cursor:pointer;font-weight:600;transition:0.3s;}
+    .btn-primary{background:#667eea;color:#fff;}
+    .btn-primary:hover{background:#5563c1;}
+    .btn-theme{background:#444;color:#fff;}body.light .btn-theme{background:#ddd;color:#222;}
+    .search-box input{width:100%;padding:12px;border-radius:12px;border:none;outline:none;margin-bottom:15px;}
+    #todoList .todo-item{display:flex;justify-content:space-between;align-items:flex-start;
+      background:rgba(255,255,255,0.1);border-radius:15px;padding:15px;margin-bottom:12px;}
+    body.light #todoList .todo-item{background:rgba(0,0,0,0.05);}
+    .todo-item.completed{opacity:0.6;text-decoration:line-through;}
+    .todo-left{flex:1;}
+    .tag{display:inline-block;padding:3px 8px;border-radius:8px;font-size:0.75rem;margin-right:6px;color:#fff;}
+    .low{background:#28a745}.medium{background:#ffc107;color:#000}.high{background:#dc3545}
+    .countdown{margin-top:6px;font-size:0.85rem;font-weight:600;}
+    .overdue{color:#ff4444;}
+    .actions button{background:none;border:none;cursor:pointer;font-size:1.1rem;margin-left:8px;}
+    /* Modals */
+    .modal{position:fixed;top:0;left:0;width:100%;height:100%;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);}
+    .modal-content{background:#fff;color:#000;padding:25px;border-radius:20px;width:90%;max-width:400px;}
+    .modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+    .modal-content input,.modal-content textarea,.modal-content select{width:100%;padding:10px;margin-bottom:12px;border:1px solid #ccc;border-radius:10px;}
+    .save-btn{width:100%;padding:12px;border:none;border-radius:25px;background:#667eea;color:#fff;cursor:pointer;}
+    .snooze-options button{margin:5px;padding:8px 14px;border:none;border-radius:20px;background:#667eea;color:#fff;cursor:pointer;}
+  </style>
+</head>
+<body>
+<div class="todo-container">
+  <div class="todo-header">
+    <h2>⏰ To-Do + Snooze</h2>
+    <div class="controls">
+      <button class="btn btn-primary" onclick="openTaskModal()">+ Add</button>
+      <button class="btn btn-theme" onclick="toggleTheme()">🌙</button>
+    </div>
+  </div>
+  <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 Search..." onkeyup="filterTasks()"></div>
+  <div id="todoList"></div>
+</div>
+
+<!-- Add/Edit Task Modal -->
+<div id="taskModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header"><h3 id="modalTitle">Add Task</h3><button onclick="closeModal('taskModal')">×</button></div>
+    <form id="taskForm">
+      <input type="hidden" id="taskId">
+      <input type="text" id="taskTitle" placeholder="Task title" required>
+      <textarea id="taskDesc" rows="3" placeholder="Description"></textarea>
+      <select id="taskPriority"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select>
+      <label>Due Date:</label><input type="datetime-local" id="taskDue">
+      <button type="submit" class="save-btn">💾 Save</button>
+    </form>
+  </div>
+</div>
+
+<!-- Snooze Modal -->
+<div id="snoozeModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header"><h3>🔔 Snooze Reminder</h3><button onclick="closeModal('snoozeModal')">×</button></div>
+    <p id="snoozeTaskTitle"></p>
+    <div class="snooze-options">
+      <button onclick="snoozeTask(5)">Snooze 5m</button>
+      <button onclick="snoozeTask(10)">Snooze 10m</button>
+      <button onclick="snoozeTask(30)">Snooze 30m</button>
+    </div>
+  </div>
+</div>
+
+<audio id="reminderSound" src="https://www.soundjay.com/buttons/beep-07.wav" preload="auto"></audio>
+
+<script>
+let tasks=JSON.parse(localStorage.getItem("tasks"))||[];
+let editMode=false;let activeSnoozeIndex=null;
+const taskModal=document.getElementById("taskModal"),snoozeModal=document.getElementById("snoozeModal");
+
+function saveTasks(){localStorage.setItem("tasks",JSON.stringify(tasks));}
+function renderTasks(filter=""){document.getElementById("todoList").innerHTML="";
+  tasks.filter(t=>t.title.toLowerCase().includes(filter)||t.desc.toLowerCase().includes(filter))
+  .forEach((t,i)=>{
+    let diff=t.due?new Date(t.due).getTime()-Date.now():null;
+    let countdown=diff!==null?`<div class="countdown ${diff<=0?"overdue":""}" id="cd-${i}">${formatCountdown(diff)}</div>`:"";
+    document.getElementById("todoList").innerHTML+=`
+      <div class="todo-item ${t.completed?"completed":""}">
+        <div class="todo-left">
+          <input type="checkbox" ${t.completed?"checked":""} onchange="toggleComplete(${i})">
+          <strong>${t.title}</strong><br><small>${t.desc||""}</small>
+          <div><span class="tag ${t.priority}">${t.priority}</span></div>${countdown}
+        </div>
+        <div class="actions"><button onclick="editTask(${i})">✏️</button><button onclick="deleteTask(${i})">🗑️</button></div>
+      </div>`;});}
+function formatCountdown(ms){if(ms<=0)return"Overdue";let s=Math.floor(ms/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);s%=60;m%=60;h%=24;return`${d}d ${h}h ${m}m ${s}s`;}
+function updateCountdowns(){tasks.forEach((t,i)=>{if(t.due&&!t.completed){let diff=new Date(t.due)-Date.now();let el=document.getElementById("cd-"+i);if(el){el.textContent=formatCountdown(diff);el.classList.toggle("overdue",diff<=0);}
+  if(diff<=0&&!t.notified){remindTask(i);}}});}
+setInterval(updateCountdowns,1000);
+function remindTask(i){let t=tasks[i];new Notification("Task Due: "+t.title,{body:t.desc||"Your task is due!"});document.getElementById("reminderSound").play();t.notified=true;activeSnoozeIndex=i;saveTasks();openModal("snoozeModal");document.getElementById("snoozeTaskTitle").textContent=`"${t.title}" is due now.`;}
+function snoozeTask(mins){let i=activeSnoozeIndex;if(i!==null){tasks[i].due=new Date(Date.now()+mins*60000).toISOString();tasks[i].notified=false;saveTasks();renderTasks();closeModal("snoozeModal");activeSnoozeIndex=null;}}
+function openTaskModal(){openModal("taskModal");document.getElementById("taskForm").reset();editMode=false;}
+function openModal(id){document.getElementById(id).style.display="flex";}
+function closeModal(id){document.getElementById(id).style.display="none";}
+function toggleComplete(i){tasks[i].completed=!tasks[i].completed;saveTasks();renderTasks();}
+function editTask(i){editMode=true;openModal("taskModal");let t=tasks[i];document.getElementById("taskId").value=i;document.getElementById("taskTitle").value=t.title;document.getElementById("taskDesc").value=t.desc;document.getElementById("taskPriority").value=t.priority;document.getElementById("taskDue").value=t.due?new Date(t.due).toISOString().slice(0,16):"";}
+function deleteTask(i){tasks.splice(i,1);saveTasks();renderTasks();}
+document.getElementById("taskForm").onsubmit=e=>{e.preventDefault();let id=document.getElementById("taskId").value,newTask={title:taskTitle.value,desc:taskDesc.value,priority:taskPriority.value,due:taskDue.value,completed:false,notified:false};
+if(editMode){tasks[id]={...newTask,completed:tasks[id].completed};}else{tasks.push(newTask);}saveTasks();closeModal("taskModal");renderTasks();};
+function filterTasks(){renderTasks(document.getElementById("searchInput").value.toLowerCase());}
+function toggleTheme(){document.body.classList.toggle("light");}
+if("Notification" in window&&Notification.permission!=="granted"){Notification.requestPermission();}
+renderTasks();
+</script>
+</body>
+</html>

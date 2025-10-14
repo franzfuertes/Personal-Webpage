@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Secure Login → Modern Calculator</title>
+
+  <!-- Fonts & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    :root{
+      --bg1:#0f1724;
+      --bg2:#0b1220;
+      --accent1:#6ee7b7;
+      --accent2:#60a5fa;
+      --glass: rgba(255,255,255,0.06);
+      --glass-strong: rgba(255,255,255,0.09);
+      --text:#e6eef8;
+      --muted:#9fb1c8;
+      --danger:#ff6b6b;
+      --success:#4ade80;
+      --card-w:420px;
+      --input-icon-left:12px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{
+      height:100%;
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: radial-gradient(1200px 600px at 10% 20%, rgba(96,165,250,0.08), transparent),
+                  radial-gradient(1000px 500px at 90% 80%, rgba(110,231,183,0.05), transparent),
+                  linear-gradient(180deg,var(--bg1), var(--bg2));
+      color:var(--text);
+      -webkit-font-smoothing:antialiased;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+    }
+
+    /* Layout */
+    .wrap{
+      width:100%;
+      max-width:1100px;
+      display:grid;
+      grid-template-columns: 1fr 480px;
+      gap:28px;
+      align-items:start;
+    }
+
+    /* Left: marketing/brand (optional subtle) */
+    .left {
+      color:var(--muted);
+      padding:24px;
+    }
+    .brand {
+      display:flex;
+      gap:14px;
+      align-items:center;
+      margin-bottom:22px;
+    }
+    .logo {
+      width:62px;height:62px;border-radius:14px;
+      background:linear-gradient(135deg,var(--accent1),var(--accent2));
+      display:flex;align-items:center;justify-content:center;font-weight:700;color:#042135;
+      box-shadow:0 8px 30px rgba(2,6,23,0.6);
+      font-family:JetBrains Mono;
+      font-size:22px;
+    }
+    .brand h1{margin:0;font-size:20px}
+    .lead{margin-top:6px;color:var(--muted);line-height:1.5}
+
+    /* Card style shared */
+    .card {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:16px;
+      padding:18px;
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 10px 40px rgba(2,6,23,0.6);
+    }
+
+    /* Login Card */
+    .auth-card{
+      width:var(--card-w);
+      padding:20px 22px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .auth-card h2 { margin:0; font-size:20px; color:var(--text); display:flex; align-items:center; gap:8px; }
+    .auth-card p { margin:0; color:var(--muted); font-size:13px }
+
+    .field {
+      margin-top:8px;
+      display:flex; flex-direction:column; gap:8px;
+      position:relative;
+    }
+    .input {
+      background: rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.04);
+      padding:12px 14px;
+      padding-left:calc(32px + var(--input-icon-left));
+      border-radius:12px;
+      color:var(--text);
+      outline:none;
+      font-size:15px;
+    }
+    .input:focus{
+      border-color: rgba(96,165,250,0.7);
+      box-shadow:0 6px 18px rgba(96,165,250,0.06);
+    }
+
+    /* input icon */
+    .input-icon {
+      position:absolute;
+      left:var(--input-icon-left);
+      top:50%;
+      transform:translateY(-50%);
+      color:var(--muted);
+      pointer-events:none;
+      font-size:14px;
+    }
+
+    .pw-row { display:flex; gap:8px; align-items:center; }
+    .toggle-btn {
+      background:transparent;border:0;color:var(--muted);cursor:pointer;font-weight:600;padding:8px;border-radius:10px;
+    }
+    .toggle-btn:hover{color:var(--text);background:rgba(255,255,255,0.02)}
+
+    .requirements{
+      display:flex;
+      gap:8px; flex-wrap:wrap;margin-top:6px;
+    }
+    .req {
+      padding:8px 10px;border-radius:10px;background:rgba(255,255,255,0.02);font-size:13px;color:var(--muted);
+      display:flex;gap:8px;align-items:center;
+    }
+    .req i { width:14px; text-align:center; }
+    .req.valid{ background: rgba(74,222,128,0.09); color:var(--success); border:1px solid rgba(74,222,128,0.08) }
+    .req.invalid{ opacity:0.6 }
+
+    .login-actions{ display:flex; gap:12px; align-items:center; margin-top:6px; }
+    .btn {
+      flex:1;
+      padding:12px 14px;border-radius:12px;border:0;font-weight:600;cursor:pointer;
+      background:linear-gradient(90deg,var(--accent2), var(--accent1)); color:#042135;
+      box-shadow:0 8px 20px rgba(2,6,23,0.6);
+      transition:transform .15s ease, box-shadow .15s;
+    }
+    .btn:disabled{ opacity:0.5; transform:none; cursor:not-allowed; box-shadow:none }
+    .btn:active{ transform: translateY(1px) }
+
+    .hint { font-size:13px; color:var(--muted) }
+
+    .error { color:var(--danger); font-size:13px; display:none; margin-top:6px }
+
+    /* Calculator card */
+    .calc-card{
+      width:420px;
+      padding:18px;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .calc-header { display:flex;justify-content:space-between;align-items:center; gap:8px }
+    .calc-title { font-weight:700; color:var(--text) }
+    .calc-sub { font-size:13px; color:var(--muted) }
+
+    .calc-top {
+      display:flex;
+      gap:12px;
+      align-items:stretch;
+    }
+
+    .display {
+      flex:1;
+      background: linear-gradient(180deg, rgba(2,6,23,0.7), rgba(2,6,23,0.6));
+      border-radius:12px;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      box-shadow: inset 0 -6px 18px rgba(0,0,0,0.6);
+      min-height:86px;
+    }
+    .expr { color:var(--muted); font-size:14px; min-height:18px; word-break:break-all }
+    .result { font-family: 'JetBrains Mono', monospace; font-size:28px; color:var(--text); margin-top:6px; text-align:right }
+
+    .side-panel {
+      width:120px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .history {
+      flex:1;
+      background:rgba(255,255,255,0.02);
+      border-radius:10px;
+      padding:8px 10px;
+      font-size:13px;
+      overflow:auto;
+      color:var(--muted);
+    }
+    .history .item { padding:8px;border-radius:8px;margin-bottom:6px; background: rgba(255,255,255,0.01); display:flex; gap:8px; align-items:center; cursor:pointer; }
+    .history .item strong { color:var(--text); display:block; flex:1; text-align:right }
+    .history .item small { color:var(--muted); font-size:12px; }
+
+    .mem-row { display:flex; gap:6px }
+    .mem-row button { flex:1; padding:8px; border-radius:8px; border:0; background:rgba(255,255,255,0.02); color:var(--muted); cursor:pointer; display:flex; gap:6px; align-items:center; justify-content:center; font-weight:600; }
+    .mem-row button:hover{ background:rgba(255,255,255,0.03); color:var(--text) }
+    .mem-row button i { font-size:14px }
+
+    /* Buttons grid */
+    .keys {
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap:10px;
+      margin-top:4px;
+    }
+    .key {
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      border-radius:10px;
+      padding:16px;
+      text-align:center;
+      font-size:18px;
+      cursor:pointer;
+      user-select:none;
+      border:1px solid rgba(255,255,255,0.03);
+      transition: transform .08s ease, box-shadow .12s;
+      color:var(--text);
+      box-shadow: 0 6px 18px rgba(2,6,23,0.45);
+      font-weight:600;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+    .key .fa { font-size:16px; }
+    .key.op { background:linear-gradient(180deg, rgba(96,165,250,0.12), rgba(110,231,183,0.06)); color:var(--text) }
+    .key.equal {
+      grid-column: span 2;
+      background: linear-gradient(90deg, var(--accent1), var(--accent2));
+      color:#042135; font-weight:800;
+    }
+    .key:active{ transform: translateY(2px) }
+    .key.small { font-size:14px; padding:10px }
+
+    /* active/keyboard highlight */
+    .key.highlight {
+      transform: translateY(2px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.45) inset;
+      opacity:0.95;
+    }
+
+    /* AC special look */
+    .key[data-key="ac"] { background: linear-gradient(180deg, rgba(255,107,107,0.12), rgba(255,107,107,0.05)); color:var(--danger); }
+
+    /* History animation */
+    .history .item.new { animation: slideIn 260ms ease; }
+    @keyframes slideIn { from { transform: translateY(-6px); opacity:0 } to { transform:translateY(0); opacity:1 } }
+
+    .logout-btn {
+      padding:8px 12px;border-radius:10px;border:0;background:rgba(255,255,255,0.02);color:var(--muted);cursor:pointer;
+    }
+
+    /* Responsive */
+    @media (max-width:980px){
+      .wrap{ grid-template-columns: 1fr; max-width:720px; }
+      .left{ order:2 }
+      .calc-card{ order:1; margin-bottom:14px }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="left">
+      <div class="brand">
+        <div class="logo"><i class="fa-solid fa-calculator" style="color:#042135;font-size:20px;"></i></div>
+        <div>
+          <h1 style="margin:0">Calculator Terminal</h1>
+          <div class="lead">Secure sign in → Modern, elegant calculator with keyboard support and history.</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <strong style="font-size:15px">Why this flow?</strong>
+            <div class="hint">We added live validation for clearer UX and a refined calculator UI to improve accuracy & speed.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login card -->
+    <div class="card auth-card" id="loginCard">
+      <h2><i class="fa-solid fa-right-to-bracket"></i> Sign in to continue</h2>
+      <p class="hint">Username must include an <strong>@</strong>. Password must contain <strong>uppercase, lowercase, number & special character</strong>.</p>
+
+      <div class="field">
+        <input id="username" class="input" placeholder="Email (e.g. you@example.com)" autocomplete="username">
+      </div>
+
+      <div class="field">
+        <div style="display:flex;align-items:center;justify-content:space-between; gap:8px;">
+          <input id="password" class="input" placeholder="Password" type="password" autocomplete="current-password" style="flex:1" aria-label="Password">
+          <button id="showPw" class="toggle-btn" title="Show / hide password"><i class="fa-solid fa-eye"></i></button>
+        </div>
+
+        <div class="requirements" aria-hidden="false">
+          <div id="reqUpper" class="req invalid"><i class="fa-solid fa-xmark"></i> A-Z</div>
+          <div id="reqLower" class="req invalid"><i class="fa-solid fa-xmark"></i> a-z</div>
+          <div id="reqNumber" class="req invalid"><i class="fa-solid fa-xmark"></i> 0-9</div>
+          <div id="reqSymbol" class="req invalid"><i class="fa-solid fa-xmark"></i> symbol</div>
+        </div>
+      </div>
+
+      <div class="login-actions">
+        <button id="loginBtn" class="btn" disabled><i class="fa-solid fa-right-to-bracket" style="margin-right:8px"></i>Log in</button>
+      </div>
+
+      <div class="error" id="loginError">Wrong username or password.</div>
+
+     <div style="margin-top:10px;font-size:13px;color:var(--muted)">
+      </div>
+    </div>
+
+    <!-- Calculator card -->
+    <div class="card calc-card" id="calcCard" style="display:none">
+      <div class="calc-header">
+        <div>
+          <div class="calc-title"><i class="fa-solid fa-calculator" style="margin-right:8px"></i>Calculator</div>
+          <div class="calc-sub">Professional • Modern • Precise</div>
+        </div>
+
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button class="logout-btn" id="logoutBtn" title="Sign out"><i class="fa-solid fa-right-from-bracket" style="margin-right:6px"></i>Logout</button>
+        </div>
+      </div>
+
+      <div class="calc-top">
+        <div class="display" id="displayArea">
+          <div class="expr" id="exprLine">&nbsp;</div>
+          <div class="result" id="resultLine">0</div>
+        </div>
+
+        <div class="side-panel">
+          <div style="font-size:13px;color:var(--muted)">History</div>
+          <div class="history" id="historyList" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <div class="keys" id="keys">
+        <div class="key small" data-key="ac"><i class="fa-solid fa-ban"></i></div>
+        <div class="key small" data-key="back"><i class="fa-solid fa-delete-left"></i></div>
+        <div class="key small" data-key="%"><i class="fa-solid fa-percent"></i></div>
+        <div class="key op" data-key="/"><i class="fa-solid fa-divide"></i></div>
+
+        <div class="key" data-key="7">7</div>
+        <div class="key" data-key="8">8</div>
+        <div class="key" data-key="9">9</div>
+        <div class="key op" data-key="*"><i class="fa-solid fa-xmark"></i></div>
+
+        <div class="key" data-key="4">4</div>
+        <div class="key" data-key="5">5</div>
+        <div class="key" data-key="6">6</div>
+        <div class="key op" data-key="-"><i class="fa-solid fa-minus"></i></div>
+
+        <div class="key" data-key="1">1</div>
+        <div class="key" data-key="2">2</div>
+        <div class="key" data-key="3">3</div>
+        <div class="key op" data-key="+"><i class="fa-solid fa-plus"></i></div>
+
+        <div class="key" data-key="0" style="grid-column: span 2">0</div>
+        <div class="key" data-key="."><i class="fa-solid fa-circle"></i></div>
+        <div class="key" data-key="(">(</div>
+        <div class="key" data-key=")">)</div>
+
+        <div class="key equal" data-key="="><i class="fa-solid fa-equals"></i></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ------- Login logic & validation -------
+    const usernameEl = document.getElementById('username');
+    const passwordEl = document.getElementById('password');
+    const showPwBtn = document.getElementById('showPw');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginError = document.getElementById('loginError');
+
+    const reqUpper = document.getElementById('reqUpper');
+    const reqLower = document.getElementById('reqLower');
+    const reqNumber = document.getElementById('reqNumber');
+    const reqSymbol = document.getElementById('reqSymbol');
+
+    function checkPasswordRules(pw) {
+      const hasUpper = /[A-Z]/.test(pw);
+      const hasLower = /[a-z]/.test(pw);
+      const hasNumber = /[0-9]/.test(pw);
+      const hasSymbol = /[^A-Za-z0-9]/.test(pw);
+      updateReq(reqUpper, hasUpper);
+      updateReq(reqLower, hasLower);
+      updateReq(reqNumber, hasNumber);
+      updateReq(reqSymbol, hasSymbol);
+      return hasUpper && hasLower && hasNumber && hasSymbol;
+    }
+    function updateReq(el, ok){
+      el.classList.toggle('valid', ok);
+      el.classList.toggle('invalid', !ok);
+      const icon = el.querySelector('i');
+      if (icon) {
+        icon.className = ok ? 'fa-solid fa-check' : 'fa-solid fa-xmark';
+      }
+    }
+
+    function validateFormUI(){
+      const user = usernameEl.value.trim();
+      const pass = passwordEl.value;
+      const hasAt = user.includes('@');
+      const passOk = checkPasswordRules(pass);
+      loginBtn.disabled = !(hasAt && passOk);
+      // hide error as user types
+      loginError.style.display = 'none';
+    }
+
+    usernameEl.addEventListener('input', validateFormUI);
+    passwordEl.addEventListener('input', validateFormUI);
+
+    showPwBtn.addEventListener('click', () => {
+      const t = passwordEl.type === 'password' ? 'text' : 'password';
+      passwordEl.type = t;
+      const icon = showPwBtn.querySelector('i');
+      if (icon) icon.className = (t === 'text') ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+    });
+
+    // Demo credentials
+    const DEMO_USER = 'admin@example.com';
+    const DEMO_PW = 'Admin@123';
+
+    loginBtn.addEventListener('click', () => {
+      const user = usernameEl.value.trim();
+      const pass = passwordEl.value;
+      if (!user.includes('@')) {
+        loginError.textContent = "Username must include an '@'.";
+        loginError.style.display = 'block';
+        return;
+      }
+      if (!checkPasswordRules(pass)) {
+        loginError.textContent = "Password must have uppercase, lowercase, number and symbol.";
+        loginError.style.display = 'block';
+        return;
+      }
+
+      if (user === DEMO_USER && pass === DEMO_PW) {
+        // success
+        document.getElementById('loginCard').style.display = 'none';
+        document.getElementById('calcCard').style.display = 'block';
+        setTimeout(() => { enableCalculator(); }, 80);
+      } else {
+        loginError.textContent = "Wrong username or password.";
+        loginError.style.display = 'block';
+      }
+    });
+
+    // allow Enter to log in
+    [usernameEl, passwordEl].forEach(el => {
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !loginBtn.disabled) { loginBtn.click(); }
+      });
+    });
+
+    // ------- Calculator Logic -------
+    const displayExpr = document.getElementById('exprLine');
+    const displayResult = document.getElementById('resultLine');
+    const keys = document.getElementById('keys');
+    const historyList = document.getElementById('historyList');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    let expression = '';
+    let memory = 0;
+    let history = [];
+
+    function enableCalculator(){
+      renderAll();
+      // focus handling
+      window.addEventListener('keydown', keyHandler);
+    }
+
+    function disableCalculator(){
+      window.removeEventListener('keydown', keyHandler);
+    }
+
+    // Button clicks
+    keys.addEventListener('click', (ev) => {
+      const btn = ev.target.closest('.key');
+      if (!btn) return;
+      const key = btn.dataset.key;
+      handleKey(key);
+      // small press anim
+      btn.classList.add('highlight');
+      setTimeout(()=> btn.classList.remove('highlight'), 100);
+    });
+
+    function handleKey(key) {
+      if (!key) return;
+      if (key === 'ac') { expression = ''; updateDisplay(); return; }
+      if (key === 'back') { expression = expression.slice(0, -1); updateDisplay(); return; }
+      if (key === '=') { compute(); return; }
+      if (key === '%') { // append percent: treat as % operator
+        // if last char is number, append '%' else ignore
+        const last = expression.slice(-1);
+        if (/\d/.test(last)) { expression += '%'; updateDisplay(); }
+        return;
+      }
+
+      // append digits/operators
+      // normalize input: operators are passed as *, /, +, -, . or digits
+      if (/^[0-9]$/.test(key)) {
+        expression += key;
+      } else if (key === '.') {
+        // avoid multiple decimals in the same number chunk
+        const parts = expression.split(/[\+\-\*\/\(\)]/);
+        const last = parts[parts.length - 1];
+        if (!last.includes('.')) expression += '.';
+      } else if (/^[\+\-\*\/\(\)]$/.test(key)) {
+        // avoid two operators in a row (allow negative sign at start)
+        if (expression === '' && key === '-') {
+          expression += '-';
+        } else if (expression !== '') {
+          // replace last operator if last char is operator
+          if (/[\+\-\*\/]$/.test(expression)) {
+            expression = expression.slice(0, -1) + key;
+          } else {
+            expression += key;
+          }
+        }
+      }
+      updateDisplay();
+    }
+
+    function updateDisplay(){
+      displayExpr.textContent = expression || '\u00A0'; // non-breaking space to keep height
+      displayResult.textContent = calcPreview(expression);
+    }
+
+    function calcPreview(expr){
+      if (!expr) return '0';
+      try {
+        const safe = transformExpression(expr);
+        // Only allow digits and math tokens in transformed expression
+        if (!/^[0-9+\-*/().\s]+$/.test(safe)) return 'Error';
+        const val = Function('"use strict"; return (' + safe + ')')();
+        if (Number.isFinite(val)) {
+          // format: limit decimals
+          return formatNumber(val);
+        } else return 'Error';
+      } catch (_) { return '...'; }
+    }
+
+    function compute(){
+      if (!expression) return;
+      try {
+        const safe = transformExpression(expression);
+        if (!/^[0-9+\-*/().\s]+$/.test(safe)) throw new Error('Invalid chars');
+        const val = Function('"use strict"; return (' + safe + ')')();
+        if (!Number.isFinite(val)) throw new Error('Math error');
+        const formatted = formatNumber(val);
+        // push to history
+        pushHistory(expression, formatted);
+        expression = String(val);
+        updateDisplay();
+      } catch (e){
+        displayResult.textContent = 'Error';
+      }
+    }
+
+    function transformExpression(expr){
+      // handle percent: convert 'number%' to '(number/100)'
+      // e.g. 50% => (50/100)
+      // replace occurrences of (\d+(\.\d+)?)% with (n/100)
+      let t = expr.replace(/([0-9]+(?:\.[0-9]+)?)%/g, '($1/100)');
+      // ensure balance parentheses? keep as is
+      return t;
+    }
+
+    function formatNumber(n){
+      // show integer without decimals, otherwise up to 8 decimals trimmed
+      if (Math.abs(n) < 1e12 && Number.isInteger(n)) return n.toString();
+      return parseFloat(n.toFixed(8)).toString();
+    }
+
+    function pushHistory(expr, res){
+      history.unshift({expr, res});
+      if (history.length > 12) history.pop();
+      renderHistory();
+    }
+
+    function renderHistory(){
+      historyList.innerHTML = '';
+      if (history.length === 0) {
+        historyList.innerHTML = '<div style="opacity:0.6;font-size:13px">No history yet</div>';
+        return;
+      }
+      history.forEach((h, idx) => {
+        const node = document.createElement('div');
+        node.className = 'item';
+        // left: small icon; right: result
+        node.innerHTML = `<small style="opacity:0.8;margin-right:6px">🕘</small><strong>${h.res}</strong><div style="color:var(--muted);font-size:12px;margin-left:6px">${escapeHtml(h.expr)}</div>`;
+        node.addEventListener('click', ()=> {
+          expression = h.expr;
+          updateDisplay();
+        });
+        // mark newest with subtle animation
+        if (idx === 0) node.classList.add('new');
+        historyList.appendChild(node);
+      });
+    }
+
+
+    // keyboard handling (improved: highlights key on-screen)
+    function keyHandler(e){
+      // if login visible, ignore
+      if (document.getElementById('loginCard').style.display !== 'none') return;
+      const key = e.key;
+      // map 'Enter' to '=' and Backspace/Escape
+      if (key >= '0' && key <= '9') { handleKey(key); highlightKey(key); e.preventDefault(); return; }
+      if (key === '.') { handleKey('.'); highlightKey('.'); e.preventDefault(); return; }
+      if (key === 'Enter') { handleKey('='); highlightKey('='); e.preventDefault(); return; }
+      if (key === 'Backspace') { handleKey('back'); highlightKey('back'); e.preventDefault(); return; }
+      if (key === 'Escape') { handleKey('ac'); highlightKey('ac'); e.preventDefault(); return; }
+      if (key === '+') { handleKey('+'); highlightKey('+'); e.preventDefault(); return; }
+      if (key === '-') { handleKey('-'); highlightKey('-'); e.preventDefault(); return; }
+      if (key === '*') { handleKey('*'); highlightKey('*'); e.preventDefault(); return; }
+      if (key === '/') { handleKey('/'); highlightKey('/'); e.preventDefault(); return; }
+      if (key === '%') { handleKey('%'); highlightKey('%'); e.preventDefault(); return; }
+      if (key === '(') { handleKey('('); highlightKey('('); e.preventDefault(); return; }
+      if (key === ')') { handleKey(')'); highlightKey(')'); e.preventDefault(); return; }
+      // allow 'x' or 'X' as multiply
+      if (key === 'x' || key === 'X') { handleKey('*'); highlightKey('*'); e.preventDefault(); return; }
+    }
+
+    function highlightKey(k){
+      // find the first matching key element and toggle 'highlight' briefly
+      const selector = `[data-key="${CSS.escape(k)}"]`;
+      const btn = document.querySelector(selector);
+      if (btn){
+        btn.classList.add('highlight');
+        setTimeout(()=> btn.classList.remove('highlight'), 120);
+      }
+    }
+
+    // logout
+    logoutBtn.addEventListener('click', () => {
+      document.getElementById('calcCard').style.display = 'none';
+      document.getElementById('loginCard').style.display = 'block';
+      // reset
+      expression = '';
+      history = [];
+      memory = 0;
+      renderHistory();
+      displayExpr.textContent = '\u00A0';
+      displayResult.textContent = '0';
+      disableCalculator();
+      usernameEl.focus();
+    });
+
+    // small helpers
+    function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    // initial render
+    function renderAll(){ updateDisplay(); renderHistory(); }
+
+    // keyboard focus for input convenience
+    usernameEl.focus();
+
+    // On page load, validate form rules (empty)
+    validateFormUI();
+  </script>
+</body>
+</html>
